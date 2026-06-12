@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GianPaöl – SENTIR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --lime:   #b5ff2e;
+      --blue:   #3a7bd5;
+      --dark:   #080c12;
+      --glass:  rgba(8,12,18,0.72);
+      --glass2: rgba(8,12,18,0.88);
+      --white:  #f0f4ff;
+      --muted:  rgba(240,244,255,0.45);
+      --radius: 14px;
+    }
+
+    body {
+      background: var(--dark);
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND COVER ── */
+    .bg-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+      filter: brightness(0.38) saturate(1.2);
+      transform: scale(1.04);
+    }
+    .bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(58,123,213,0.22) 0%, transparent 70%),
+                  linear-gradient(to bottom, transparent 40%, var(--dark) 100%);
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 1.2rem 4rem;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: clamp(2.5rem, 8vw, 5rem);
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* cover art + touch animation */
+    .cover-wrap {
+      position: relative;
+      width: clamp(220px, 62vw, 340px);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cover-wrap img {
+      width: 100%;
+      border-radius: 18px;
+      display: block;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      will-change: transform;
+    }
+    .cover-wrap:hover img { transform: scale(1.025); }
+
+    /* finger-touch flash overlay */
+    .flash-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      background: radial-gradient(circle at 50% 55%, rgba(181,255,46,0.55) 0%, rgba(255,255,255,0.0) 70%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.05s ease;
+    }
+    .cover-wrap.touched .flash-overlay { opacity: 1; }
+    .cover-wrap.flash-out .flash-overlay { opacity: 0; transition: opacity 0.55s ease; }
+
+    /* floating touch-hint badge */
+    .touch-hint {
+      position: absolute;
+      bottom: -13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--lime);
+      color: #0a0a0a;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 11px;
+      border-radius: 99px;
+      white-space: nowrap;
+      opacity: 0.9;
+      animation: hintpulse 2.4s ease-in-out infinite;
+    }
+    @keyframes hintpulse {
+      0%,100% { transform: translateX(-50%) scale(1); opacity: 0.9; }
+      50% { transform: translateX(-50%) scale(1.05); opacity: 1; }
+    }
+
+    /* ── TITLE BLOCK ── */
+    .title-block {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .artist-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 300;
+      font-size: clamp(0.8rem, 3vw, 0.95rem);
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .song-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.2rem, 13vw, 5.5rem);
+      letter-spacing: 0.04em;
+      line-height: 0.92;
+      background: linear-gradient(135deg, var(--white) 30%, var(--lime) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-top: 0.15rem;
+    }
+    .release-tag {
+      margin-top: 0.55rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      color: var(--lime);
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      margin-top: 2.4rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
+      align-self: flex-start;
+      width: 100%;
+      max-width: 520px;
+      padding-bottom: 0.55rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* ── STREAM BUTTONS ── */
+    .stream-list {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .stream-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 0.9rem 1.2rem;
+      border-radius: var(--radius);
+      background: var(--glass);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.09);
+      text-decoration: none;
+      color: var(--white);
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: background 0.18s, border-color 0.18s, transform 0.14s;
+      cursor: pointer;
+    }
+    .stream-btn:hover {
+      background: rgba(181,255,46,0.1);
+      border-color: var(--lime);
+      transform: translateX(4px);
+    }
+    .stream-btn .svc-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .svc-spotify { background: #1DB954; }
+    .svc-apple   { background: linear-gradient(135deg,#fc5c7d,#6a3093); }
+    .svc-deezer  { background: linear-gradient(135deg,#a239ca,#4717f6); }
+
+    .stream-btn .svc-label { flex: 1; }
+    .stream-btn .svc-action {
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--lime);
+      font-weight: 700;
+    }
+
+    /* ── FOLLOW ── */
+    .follow-list {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .follow-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.15s, transform 0.15s;
+    }
+    .follow-btn:hover { color: var(--white); transform: translateY(-3px); }
+    .follow-btn .ficon {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      background: var(--glass);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .follow-btn:hover .ficon {
+      background: rgba(181,255,46,0.1);
+      border-color: rgba(181,255,46,0.45);
+    }
+
+    /* ── COMMUNITY FORM ── */
+    .community-wrap {
+      width: 100%;
+      max-width: 520px;
+      margin-top: 1rem;
+      background: var(--glass2);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      padding: 1.6rem 1.4rem;
+    }
+    .community-wrap p {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    .form-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .form-grid input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-grid input::placeholder { color: rgba(240,244,255,0.3); }
+    .form-grid input:focus { border-color: var(--lime); }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      cursor: pointer;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--lime);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .checkbox-row span {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .submit-btn {
+      margin-top: 0.4rem;
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 10px;
+      background: var(--lime);
+      color: #0a0a0a;
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.14s, box-shadow 0.14s, opacity 0.14s;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(181,255,46,0.3); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .form-status {
+      margin-top: 0.7rem;
+      font-size: 0.78rem;
+      text-align: center;
+      min-height: 1.2em;
+      color: var(--lime);
+    }
+    .form-status.error { color: #ff6b6b; }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 3rem;
+      font-size: 0.65rem;
+      color: rgba(240,244,255,0.2);
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    /* ── SPARKLE CANVAS ── */
+    #sparkles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 380px) {
+      .follow-list { gap: 0.6rem; }
+      .follow-btn .ficon { width: 40px; height: 40px; font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- BG -->
+<div class="bg-wrap">
+  <img src="cover.png" alt="" aria-hidden="true" />
+  <div class="bg-overlay"></div>
+</div>
+
+<!-- Sparkle canvas -->
+<canvas id="sparkles"></canvas>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="cover-wrap" id="coverArt" role="button" aria-label="Toca la portada" tabindex="0">
+      <img src="cover.png" alt="Sentir – GianPaöl portada" draggable="false" />
+      <div class="flash-overlay" id="flashOverlay"></div>
+      <span class="touch-hint">✦ tocá la tapa</span>
+    </div>
+
+    <div class="title-block">
+      <div class="artist-name">GianPaöl</div>
+      <div class="song-name">SENTIR</div>
+      <div class="release-tag">Single · Nuevo</div>
+    </div>
+  </section>
+
+  <!-- ESCUCHAR AHORA -->
+  <div class="section-label" style="margin-top:2.8rem;">Escuchá ahora</div>
+
+  <div class="stream-list">
+    <a class="stream-btn" href="https://open.spotify.com/intl-es/track/5zh3J3FoZt1yGUibsQtDTV?si=0feda4f7b2034100" target="_blank" rel="noopener">
+      <div class="svc-icon svc-spotify">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.208c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.856zm1.223-2.722a.779.779 0 0 1-1.072.257c-2.687-1.652-6.786-2.13-9.965-1.166a.779.779 0 0 1-.447-1.492c3.632-1.088 8.147-.562 11.227 1.329a.779.779 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.935.935 0 1 1-.543-1.79c3.533-1.072 9.404-.865 13.115 1.338a.935.935 0 0 1-.955 1.609z"/></svg>
+      </div>
+      <span class="svc-label">Spotify</span>
+      <span class="svc-action">Escuchar →</span>
+    </a>
+
+    <a class="stream-btn" href="https://music.apple.com/ar/album/sentir-single/6775264643" target="_blank" rel="noopener">
+      <div class="svc-icon svc-apple">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M23 16.5c-.4 1.1-.9 2.1-1.5 2.9-.8 1.1-1.5 1.9-2.1 2.2-.8.5-1.7.7-2.6.7-.7 0-1.5-.2-2.5-.6-1-.4-1.9-.6-2.8-.6-.9 0-1.8.2-2.8.6-1 .4-1.8.6-2.4.6-1 .1-1.9-.2-2.7-.7-.7-.4-1.4-1.2-2.2-2.3C.6 18.2 0 16.6 0 14.9c0-1.6.4-3 1.1-4.1.6-.9 1.4-1.7 2.4-2.3 1-.5 2.1-.8 3.2-.8 1 0 1.9.2 2.9.6.9.4 1.5.6 1.8.6.2 0 .9-.2 2-.7 1-.4 1.9-.6 2.6-.5 1.9.2 3.4 1 4.3 2.5-1.7 1-2.5 2.5-2.5 4.3 0 1.5.5 2.8 1.6 3.8.5.4 1 .8 1.6 1zm-6-14.3c0 1.2-.4 2.3-1.3 3.2-.9 1-2 1.6-3.2 1.5 0-.1 0-.3 0-.4 0-1.1.5-2.3 1.3-3.1.4-.4.9-.8 1.5-1.1.6-.3 1.1-.4 1.7-.4 0 .1 0 .2 0 .3z"/></svg>
+      </div>
+      <span class="svc-label">Apple Music</span>
+      <span class="svc-action">Escuchar →</span>
+    </a>
+
+    <a class="stream-btn" href="https://link.deezer.com/s/33xil48uHbRMPoKRajtwz" target="_blank" rel="noopener">
+      <div class="svc-icon svc-deezer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18.944 16.103h4.02v1.672h-4.02v-1.672zm0-3.394h4.02v1.672h-4.02V12.71zm0-3.394h4.02v1.672h-4.02V9.316zm-5.458 6.787h4.021v1.672h-4.021v-1.672zm0-3.394h4.021v1.672h-4.021V12.71zm0-3.394h4.021v1.672h-4.021V9.316zm-5.457 6.787h4.02v1.672h-4.02v-1.672zm0-3.394h4.02v1.672h-4.02V12.71zm-5.457 3.394h4.02v1.672h-4.02v-1.672z"/></svg>
+      </div>
+      <span class="svc-label">Deezer</span>
+      <span class="svc-action">Escuchar →</span>
+    </a>
+  </div>
+
+  <!-- SEGUIR EN -->
+  <div class="section-label">Seguir en</div>
+
+  <div class="follow-list">
+    <a class="follow-btn" href="https://www.instagram.com/gianpaoll" target="_blank" rel="noopener">
+      <div class="ficon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+      </div>
+      Instagram
+    </a>
+
+    <a class="follow-btn" href="https://www.youtube.com/@gianpaol" target="_blank" rel="noopener">
+      <div class="ficon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+      </div>
+      YouTube
+    </a>
+
+    <a class="follow-btn" href="https://open.spotify.com/intl-es/artist/3arNN7Oifxn3p5Td33wKp1?si=p7OgNz5zRxeeMNdkYJ8o5A" target="_blank" rel="noopener">
+      <div class="ficon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.208c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.856zm1.223-2.722a.779.779 0 0 1-1.072.257c-2.687-1.652-6.786-2.13-9.965-1.166a.779.779 0 0 1-.447-1.492c3.632-1.088 8.147-.562 11.227 1.329a.779.779 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.935.935 0 1 1-.543-1.79c3.533-1.072 9.404-.865 13.115 1.338a.935.935 0 0 1-.955 1.609z"/></svg>
+      </div>
+      Spotify
+    </a>
+
+    <a class="follow-btn" href="https://www.tiktok.com/@gianpaoll" target="_blank" rel="noopener">
+      <div class="ficon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+      </div>
+      TikTok
+    </a>
+  </div>
+
+  <!-- COMUNIDAD -->
+  <div class="section-label" style="margin-top:2.8rem;">Comunidad</div>
+
+  <div class="community-wrap">
+    <p>Suscribite para recibir novedades, lanzamientos y mensajes directos de GianPaöl. Sin spam, solo lo que importa.</p>
+    <div class="form-grid">
+      <input type="email" id="inp-email" placeholder="tu@email.com" autocomplete="email" />
+      <input type="text"  id="inp-nombre" placeholder="Nombre y apellido" autocomplete="name" />
+      <input type="text"  id="inp-ciudad" placeholder="Ciudad" autocomplete="address-level2" />
+      <label class="checkbox-row">
+        <input type="checkbox" id="inp-suscripto" checked />
+        <span>Quiero recibir novedades y notificaciones ✓</span>
+      </label>
+      <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">Unirme a la comunidad</button>
+      <div class="form-status" id="formStatus"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Sin Concepto · GianPaöl · 2025<br/>Hecho con ♥ desde Argentina
+  </div>
+</div>
+
+
+<script>
+  /* ─── COVER TOUCH / CLICK ANIMATION ─── */
+  const cover = document.getElementById('coverArt');
+
+  function triggerTouch(x, y) {
+    cover.classList.add('touched');
+    spawnSparkles(x, y, 28);
+    setTimeout(() => {
+      cover.classList.remove('touched');
+      cover.classList.add('flash-out');
+      setTimeout(() => cover.classList.remove('flash-out'), 600);
+    }, 90);
+  }
+
+  cover.addEventListener('click', e => {
+    triggerTouch(e.clientX, e.clientY);
+  });
+  cover.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    triggerTouch(t.clientX, t.clientY);
+  }, { passive: true });
+  cover.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') triggerTouch(window.innerWidth/2, window.innerHeight/3);
+  });
+
+  /* ─── SPARKLE CANVAS ─── */
+  const canvas = document.getElementById('sparkles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function spawnSparkles(cx, cy, count) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.5 + Math.random() * 4.5;
+      particles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.2,
+        life: 1,
+        decay: 0.022 + Math.random() * 0.03,
+        size: 2 + Math.random() * 4,
+        hue: Math.random() < 0.6 ? 'lime' : 'white'
+      });
+    }
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles = particles.filter(p => p.life > 0);
+    for (const p of particles) {
+      ctx.save();
+      ctx.globalAlpha = p.life * 0.85;
+      ctx.fillStyle = p.hue === 'lime' ? '#b5ff2e' : '#ffffff';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = p.hue === 'lime' ? '#b5ff2e' : '#aaccff';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.12; // gravity
+      p.life -= p.decay;
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  /* ─── GOOGLE SHEETS SUBMIT ─── */
+  /*
+   * INSTRUCCIONES PARA ACTIVAR EL ENVÍO A GOOGLE SHEETS:
+   * 1. Abrí tu hoja: https://docs.google.com/spreadsheets/d/1OrnwpQc12XK9KsnJQhatcAC2UWxgLWuSahPzWhgdTc4
+   * 2. Menú → Extensiones → Apps Script
+   * 3. Borrá el contenido y pegá el código que está más abajo en el comentario APPS_SCRIPT
+   * 4. Guardá → Implementar → Nueva implementación → Aplicación web
+   *    - Ejecutar como: Yo
+   *    - Quién tiene acceso: Cualquier usuario
+   * 5. Copiá la URL que te da y pegala en SHEETS_URL acá abajo
+   */
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx3QZ6MF9Vv4X63-r_OPxKTBkivN6bvK-EuQBZ-RlApElp33LtqZMPhp22dg45UnA66/exec';
+
+  async function handleSubmit() {
+    const email    = document.getElementById('inp-email').value.trim();
+    const nombre   = document.getElementById('inp-nombre').value.trim();
+    const ciudad   = document.getElementById('inp-ciudad').value.trim();
+    const suscripto = document.getElementById('inp-suscripto').checked;
+    const btn      = document.getElementById('submitBtn');
+    const status   = document.getElementById('formStatus');
+
+    if (!email || !nombre) {
+      status.textContent = '⚠ Completá al menos email y nombre.';
+      status.className = 'form-status error';
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      status.textContent = '⚠ El email no parece válido.';
+      status.className = 'form-status error';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    status.textContent = '';
+    status.className = 'form-status';
+
+    if (SHEETS_URL === 'TU_APPS_SCRIPT_URL_AQUI') {
+      // Modo demo sin API configurada
+      await new Promise(r => setTimeout(r, 900));
+      status.textContent = '✅ ¡Bienvenido a la comunidad, ' + nombre.split(' ')[0] + '!';
+      status.className = 'form-status';
+      btn.textContent = '¡Listo!';
+      spawnSparkles(window.innerWidth/2, window.innerHeight*0.75, 40);
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams({ email, nombre, ciudad, suscripto: suscripto ? 'X' : '' });
+      await fetch(SHEETS_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' });
+      status.textContent = '✅ ¡Gracias ' + nombre.split(' ')[0] + '! Ya estás en la lista.';
+      status.className = 'form-status';
+      btn.textContent = '¡Listo!';
+      spawnSparkles(window.innerWidth/2, window.innerHeight*0.75, 40);
+    } catch (err) {
+      status.textContent = '❌ Error al enviar. Revisá tu conexión.';
+      status.className = 'form-status error';
+      btn.disabled = false;
+      btn.textContent = 'Unirme a la comunidad';
+    }
+  }
+
+  /*
+  ────────────────────────────────────────────────────────────────────────
+  APPS_SCRIPT — pegá esto en tu Apps Script de Google Sheets
+  ────────────────────────────────────────────────────────────────────────
+
+  function doGet(e) {
+    const ss = SpreadsheetApp.openById('1OrnwpQc12XK9KsnJQhatcAC2UWxgLWuSahPzWhgdTc4');
+    const sheet = ss.getSheetByName('Comunidad - Notificaciones') || ss.getSheets()[0];
+
+    // Verificar si ya existe el encabezado
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['EMAIL', 'NOMBRE Y APELLIDO', 'CIUDAD', 'SUSCRIPTO?', 'FECHA']);
+    }
+
+    const email     = e.parameter.email     || '';
+    const nombre    = e.parameter.nombre    || '';
+    const ciudad    = e.parameter.ciudad    || '';
+    const suscripto = e.parameter.suscripto || '';
+    const fecha     = new Date().toLocaleString('es-AR');
+
+    sheet.appendRow([email, nombre, ciudad, suscripto, fecha]);
+
+    return ContentService.createTextOutput('OK').setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  ────────────────────────────────────────────────────────────────────────
+  */
+</script>
+
+</body>
+</html>
